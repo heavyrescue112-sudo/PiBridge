@@ -1,4 +1,6 @@
 #!/bin/bash
+
+# --- SELF-UPDATER ---
 if [ "$1" == "update" ]; then
     echo "Checking GitHub for the latest .deb release..."
     URL=$(curl -s https://api.github.com/repos/heavyrescue112-sudo/PiBridge/releases/latest \
@@ -10,14 +12,25 @@ if [ "$1" == "update" ]; then
     exit 0
 fi
 
-# Bridge Logic
+# --- BRIDGE CONFIG ---
 WIFI_IFACE="wlan0"
 ETH_IFACE="eth0"
 ETH_IP="192.168.71.250/22" 
-ip addr flush dev $ETH_IFACE
-ip link set $ETH_IFACE up
-ip addr add $ETH_IP dev $ETH_IFACE
+
+# 1. Take control away from NetworkManager immediately
+nmcli device set "$ETH_IFACE" managed no 2>/dev/null
+
+# 2. Configure the hardware port
+ip addr flush dev "$ETH_IFACE"
+ip link set "$ETH_IFACE" up
+ip addr add "$ETH_IP" dev "$ETH_IFACE"
+
+# 3. Enable kernel IP forwarding
 sysctl -w net.ipv4.ip_forward=1 > /dev/null
+
+# 4. Start the Proxy ARP engine
 killall parprouted 2>/dev/null 
-parprouted $WIFI_IFACE $ETH_IFACE
+parprouted "$WIFI_IFACE" "$ETH_IFACE"
+
+# 5. Kick the DHCP helper to start relaying
 systemctl restart dhcp-helper
