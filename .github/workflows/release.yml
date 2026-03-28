@@ -1,0 +1,22 @@
+name: Build Release
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build .deb
+        run: |
+          mkdir build
+          cp -r DEBIAN etc usr build/
+          chmod 755 build/DEBIAN/postinst build/usr/local/bin/pibridge
+          dpkg-deb --build build pibridge.deb
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: pibridge.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

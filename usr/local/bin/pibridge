@@ -1,0 +1,23 @@
+#!/bin/bash
+if [ "$1" == "update" ]; then
+    echo "Checking GitHub for the latest .deb release..."
+    URL=$(curl -s https://api.github.com/repos/heavyrescue112-sudo/PiBridge/releases/latest \
+          | grep "browser_download_url" | grep ".deb" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+    if [ -z "$URL" ]; then echo "Error: No .deb found."; exit 1; fi
+    curl -L "$URL" -o /tmp/pibridge.deb
+    sudo apt install --reinstall -y /tmp/pibridge.deb
+    rm /tmp/pibridge.deb
+    exit 0
+fi
+
+# Bridge Logic
+WIFI_IFACE="wlan0"
+ETH_IFACE="eth0"
+ETH_IP="192.168.71.250/22" 
+ip addr flush dev $ETH_IFACE
+ip link set $ETH_IFACE up
+ip addr add $ETH_IP dev $ETH_IFACE
+sysctl -w net.ipv4.ip_forward=1 > /dev/null
+killall parprouted 2>/dev/null 
+parprouted $WIFI_IFACE $ETH_IFACE
+systemctl restart dhcp-helper

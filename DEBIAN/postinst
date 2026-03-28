@@ -1,0 +1,4 @@
+#!/bin/bash
+sed -i 's/^DHCPHELPER_OPTS=.*/DHCPHELPER_OPTS="-b wlan0"/' /etc/default/dhcp-helper
+systemctl daemon-reload
+systemctl enable --now pibridge.service

@@ -1,0 +1,8 @@
+Package: pibridge
+Version: 1.0.0
+Architecture: arm64
+Maintainer: Charles Houck <charlieracer07@gmail.com>
+Depends: parprouted, dhcp-helper, curl
+Section: utils
+Priority: optional
+Description: High-performance Proxy ARP bridge for Pi 5.
